@@ -56,7 +56,55 @@ def get_contacts():
     
     return jsonify(contact_list)
 
-# ... 其他路由保持不变 ...
+@app.route('/contacts', methods=['POST'])
+def add_contact():
+    """添加联系人"""
+    data = request.json
+    name = data.get('name')
+    phone = data.get('phone')
+    email = data.get('email', '')
+    
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute(
+        'INSERT INTO contacts (name, phone, email) VALUES (?, ?, ?)',
+        (name, phone, email)
+    )
+    conn.commit()
+    contact_id = cursor.lastrowid
+    conn.close()
+    
+    return jsonify({"message": "联系人添加成功", "id": contact_id})
+
+@app.route('/contacts/<int:contact_id>', methods=['PUT'])
+def update_contact(contact_id):
+    """修改联系人"""
+    data = request.json
+    name = data.get('name')
+    phone = data.get('phone')
+    email = data.get('email', '')
+    
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute(
+        'UPDATE contacts SET name=?, phone=?, email=? WHERE id=?',
+        (name, phone, email, contact_id)
+    )
+    conn.commit()
+    conn.close()
+    
+    return jsonify({"message": "联系人更新成功"})
+
+@app.route('/contacts/<int:contact_id>', methods=['DELETE'])
+def delete_contact(contact_id):
+    """删除联系人"""
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM contacts WHERE id=?', (contact_id,))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({"message": "联系人删除成功"})
 
 if __name__ == '__main__':
     init_db()  # 启动时初始化数据库

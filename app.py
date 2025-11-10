@@ -1,18 +1,13 @@
-import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
-
-# 修改数据库路径，适应函数计算环境
-if os.path.exists('/mnt/auto'):
-    # 在函数计算环境中，使用持久化存储
-    DATABASE = '/mnt/auto/contacts.db'
-else:
-    # 本地开发环境
-    DATABASE = 'contacts.db'
+import os
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)  # 允许前端跨域访问
+
+# 数据库文件路径
+DATABASE = 'contacts.db'
 
 def init_db():
     """初始化数据库"""
@@ -106,11 +101,9 @@ def delete_contact(contact_id):
     
     return jsonify({"message": "联系人删除成功"})
 
-# 初始化数据库
-init_db()
-
-# 本地开发时运行
 if __name__ == '__main__':
+    init_db()  # 启动时初始化数据库
+    port = int(os.environ.get("PORT", 5000))
     print("数据库初始化完成！")
-    print("API服务运行在: http://127.0.0.1:5000")
-    app.run(debug=True)
+    print(f"API服务运行在: http://0.0.0.0:{port}")
+    app.run(host='0.0.0.0', port=port, debug=False)
